@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contactapp/utils.dart/helper_functions.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,8 +23,8 @@ class _NewContactPageState extends State<NewContactPage> {
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
   String? dob;
-  String? imagePath;
-  ImageSource source = ImageSource.camera;
+  XFile? xfile;
+
   final formkey = GlobalKey<FormState>();
 
   @override
@@ -38,6 +39,9 @@ class _NewContactPageState extends State<NewContactPage> {
 
   @override
   Widget build(BuildContext context) {
+    print(
+      "${xfile?.path}"
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Contact'),
@@ -58,19 +62,27 @@ class _NewContactPageState extends State<NewContactPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(
-                      width: 00,
+                      width: 100,
                       height: 100,
                       child: Card(
                         elevation: 5,
-                        child: imagePath == null
+                        child: xfile == null
                             ? const Icon(
                                 Icons.person,
                                 size: 70,
                               )
-                            : Image.file(
-                                File(imagePath!),
-                                fit: BoxFit.cover,
-                              ),
+                            : kIsWeb
+                                ? Container(
+                                    color: Colors.cyanAccent,
+                                    child: Image.network(
+                                      xfile!.path,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Image.file(
+                                    File(xfile!.path),
+                                    fit: BoxFit.cover,
+                                  ),
                       ),
                     ),
                     Row(
@@ -78,17 +90,15 @@ class _NewContactPageState extends State<NewContactPage> {
                       children: [
                         TextButton.icon(
                           icon: Icon(Icons.camera),
-                          onPressed: () {
-                            source = ImageSource.camera;
-                            getImage();
+                          onPressed: () async {
+                            getImage(ImageSource.camera);
                           },
                           label: const Text('Capture'),
                         ),
                         TextButton.icon(
                           icon: Icon(Icons.photo_album),
                           onPressed: () {
-                            source = ImageSource.gallery;
-                            getImage();
+                            getImage(ImageSource.gallery);
                           },
                           label: const Text('Gallery'),
                         ),
@@ -212,12 +222,8 @@ class _NewContactPageState extends State<NewContactPage> {
     }
   }
 
-  void getImage() async {
-    final XFile = await ImagePicker().pickImage(source: source);
-    if (XFile != null) {
-      setState(() {
-        imagePath = XFile.path;
-      });
-    }
+  Future<void> getImage(ImageSource source) async {
+    xfile = await ImagePicker().pickImage(source: source);
+    setState(() {});
   }
 }
